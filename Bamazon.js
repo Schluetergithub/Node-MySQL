@@ -92,27 +92,29 @@ function start() {
           }
       ]);
 
-
-
-
-
-//   inquirer
-//     .prompt({
-//       name: "postOrBid",
-//       type: "rawlist",
-//       message: "Would you like to [POST] an auction or [BID] on an auction?",
-//       choices: ["POST", "BID"]
-//     })
-//     .then(function(answer) {
-//       // based on their answer, either call the bid or the post functions
-//       if (answer.postOrBid.toUpperCase() === "POST") {
-//         postAuction();
-//       }
-//       else {
-//         bidAuction();
-//       }
-//     });
-// }
+  inquirer
+    .prompt({
+      name: "pickAnItem",
+      type: "rawlist",
+      message: "Which product would you like to purchase?",
+      choices: ["action_figure", "bicycle", "baseball_bat", "scooter", "puzzle", "drone", "tent", "fishing_pole", "blender", "slinky"]
+    })
+    .then(function(answer) {
+        inquirer
+        .prompt({
+            name: "howMany",
+            type: "input",
+            message: "How many units would you like to purchase?"
+        })
+        // need help figuring how to compare order to stock number
+      if (answer.howMany > answer.pickAnItem) {
+        purchaseItem();
+      }
+      else {
+        outOfStock();
+      }
+    });
+}
 
 // function to handle posting new items up for auction
 function postAuction() {
@@ -161,7 +163,7 @@ function postAuction() {
     });
 }
 
-function bidAuction() {
+function outOfStock() {
   // query the database for all items being auctioned
   connection.query("SELECT * FROM auctions", function(err, results) {
     if (err) throw err;
