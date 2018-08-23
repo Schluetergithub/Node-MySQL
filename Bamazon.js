@@ -1,6 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
-var consoleTable = require('console.table');
+require('console.table');
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -9,6 +9,7 @@ var connection = mysql.createConnection({
   password: "root",
   database: "bamazon_db"
 });
+
 
 // connect to the mysql server and sql database
 connection.connect(function(err) {
@@ -19,146 +20,70 @@ connection.connect(function(err) {
 
 // function which prompts the user for what action they should take
 function start() {
-    console.table([
-        {
-          ID: 1,
-          item_name: 'action_figure',
-          dept: 'toys',
-          price: 5,
-          stock_quantity: 20
-        },
-        {
-            ID: 2,
-            item_name: 'bicycle',
-            dept: 'sports',
-            price: 100,
-            stock_quantity: 5
-          },
-          {
-            ID: 3,
-            item_name: 'baseball_bat',
-            dept: 'sports',
-            price: 20,
-            stock_quantity: 10
-          },
-          {
-            ID: 4,
-            item_name: 'scooter',
-            dept: 'sports',
-            price: 50,
-            stock_quantity: 10
-          },
-          {
-            ID: 5,
-            item_name: 'puzzle',
-            dept: 'games',
-            price: 7,
-            stock_quantity: 20
-          },
-          {
-            ID: 6,
-            item_name: 'drone',
-            dept: 'electronics',
-            price: 300,
-            stock_quantity: 2
-          },
-          {
-            ID: 7,
-            item_name: 'tent',
-            dept: 'outdoors',
-            price: 75,
-            stock_quantity: 5
-          },
-          {
-            ID: 8,
-            item_name: 'fishing_pool',
-            dept: 'outdoors',
-            price: 100,
-            stock_quantity: 3
-          },
-          {
-            ID: 9,
-            item_name: 'blender',
-            dept: 'kitchen',
-            price: 70,
-            stock_quantity: 3
-          },
-          {
-            ID: 10,
-            item_name: 'slinky',
-            dept: 'toys',
-            price: 2,
-            stock_quantity: 20
-          }
-      ]);
 
-  inquirer
-    .prompt({
-      name: "pickAnItem",
-      type: "list",
-      message: "Which product would you like to purchase?",
-      choices: ["action_figure", "bicycle", "baseball_bat", "scooter", "puzzle", "drone", "tent", "fishing_pole", "blender", "slinky"]
-    })
-    .then(function(answer) {
+    connection.query("SELECT * from products", function(error, data) {
+        if (error){
+            return console.error(error.message);
+        }
+    
+        console.table(data);
+
+
+
+        console.log("<------------------------------------------------>");
+
         inquirer
         .prompt({
+            name: "pickAnItem",
+            type: "input",
+            message: "What is the product ID of the item you would like to purchase?",
+        },{
             name: "howMany",
             type: "input",
             message: "How many units would you like to purchase?"
         })
-        // need help figuring how to compare order to stock number
-      if (answer.howMany > answer.pickAnItem) {
-        purchaseItem();
-      }
-      else {
-        outOfStock();
-      }
-    });
+        .then(function(answer) {
+            
+            for (i = 0; i > answers.length; i++) {
+                
+                if (answer.pickAnItem === ) {
+                    purchaseItem();
+                }
+                else {
+                    outOfStock();
+                }
+            }
+            // need help figuring how to compare order to stock number
+            
+        }); // this is end of inquirer
+
+    }); // this is end of select
+  
 }
 
 function purchaseItem() {
-  // prompt for info about the item being put up for auction
-  inquirer
-    .prompt([
-      {
-        name: "item",
-        type: "input",
-        message: "What is the item you would like to submit?"
-      },
-      {
-        name: "category",
-        type: "input",
-        message: "What category would you like to place your auction in?"
-      },
-      {
-        name: "startingBid",
-        type: "input",
-        message: "What would you like your starting bid to be?",
-        validate: function(value) {
-          if (isNaN(value) === false) {
-            return true;
-          }
-          return false;
-        }
-      }
-    ])
-    .then(function(answer) {
-      // when finished prompting, insert a new item into the db with that info
-      connection.query(
-        "INSERT INTO auctions SET ?",
-        {
-          item_name: answer.item,
-          category: answer.category,
-          starting_bid: answer.startingBid,
-          highest_bid: answer.startingBid
-        },
-        function(err) {
+    connection.connect(function(err) {
+        if (err) throw err;
+        var sql = "UPDATE  SET address = 'Canyon 123' WHERE address = 'Valley 345'";
+        connection.query(sql, function (err, result) {
           if (err) throw err;
-          console.log("Your auction was created successfully!");
-          // re-prompt the user for if they want to bid or post
-          start();
-        }
-      );
+          console.log(result.affectedRows + " record(s) updated");
+        });
+      });
+
+        // update statment
+    let sql = `UPDATE todos
+    SET completed = ?
+    WHERE id = ?`;
+
+    let data = [false, 1];
+
+    // execute the UPDATE statement
+    connection.query(sql, data, (error, results, fields) => {
+    if (error){
+    return console.error(error.message);
+    }
+    console.log('Rows affected:', results.affectedRows);
     });
 }
 
@@ -167,3 +92,5 @@ function outOfStock() {
     start();
 }
 
+// make an exit to run this code
+// connection.end();
