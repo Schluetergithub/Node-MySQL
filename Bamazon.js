@@ -26,71 +26,61 @@ function start() {
             return console.error(error.message);
         }
     
-        console.table(data);
+        //console.table(data);
 
-
-
-        console.log("<------------------------------------------------>");
+        //console.log("<------------------------------------------------>");
 
         inquirer
-        .prompt({
+        .prompt(
+        {
             name: "pickAnItem",
             type: "input",
-            message: "What is the product ID of the item you would like to purchase?",
-        },{
+            message: "What is the product ID of the item you would like to purchase? (or q for quit)"
+        },
+        {
             name: "howMany",
             type: "input",
             message: "How many units would you like to purchase?"
         })
         .then(function(answer) {
-            
-            for (i = 0; i > answers.length; i++) {
-                
-                if (answer.pickAnItem === ) {
-                    purchaseItem();
-                }
-                else {
-                    outOfStock();
-                }
+            /*
+            if(answer.pickAnItem === 'q') {
+                connection.end();
+                process.exit(0);
             }
-            // need help figuring how to compare order to stock number
-            
+            for (var i = 0; i > data.length; i++) {
+                if (answer.pickAnItem === data[i].id) {
+                    if(answer.howMany > data[i].stock_quanity) {
+                        console.log("Insufficient Quanity!!!");
+                        start();
+                    } else {
+                        purchaseItem(answer.pickAnItem, data[i].stock_quanity - answer.howMany);    
+                    } // quanity check
+                } // id match
+            } // for loop
+            */
         }); // this is end of inquirer
-
     }); // this is end of select
-  
-}
+} // function
 
-function purchaseItem() {
-    connection.connect(function(err) {
+function purchaseItem(pickAnItem, difference) {
+
+    var sql = "UPDATE products SET ? WHERE ?";
+    var replacements = [
+        {
+            stock_quanity: difference
+        },
+        {
+            id: pickAnItem
+        },
+    ];
+    
+    connection.query(sql, replacements, function (err, result) {
         if (err) throw err;
-        var sql = "UPDATE  SET address = 'Canyon 123' WHERE address = 'Valley 345'";
-        connection.query(sql, function (err, result) {
-          if (err) throw err;
-          console.log(result.affectedRows + " record(s) updated");
-        });
-      });
-
-        // update statment
-    let sql = `UPDATE todos
-    SET completed = ?
-    WHERE id = ?`;
-
-    let data = [false, 1];
-
-    // execute the UPDATE statement
-    connection.query(sql, data, (error, results, fields) => {
-    if (error){
-    return console.error(error.message);
-    }
-    console.log('Rows affected:', results.affectedRows);
+        console.log(result.affectedRows + " record(s) updated");
+        start();
     });
 }
 
-function outOfStock() {
-    console.log("Insufficient Quantity!");
-    start();
-}
 
-// make an exit to run this code
-// connection.end();
+
