@@ -1,0 +1,112 @@
+var mysql = require("mysql");
+var inquirer = require("inquirer");
+require('console.table');
+
+var connection = mysql.createConnection({
+  host: "localhost",
+  port: 3306,
+  user: "root",
+  password: "root",
+  database: "bamazon_db"
+});
+
+
+// connect to the mysql server and sql database
+connection.connect(function(err) {
+  if (err) throw err;
+  // run the start function after the connection is made to prompt the user
+  start();
+});
+
+// function which prompts the user for what action they should take
+function start() {
+
+    var tableData; 
+
+    connection.query("SELECT * from products", function(error, data) {
+        tableData = data
+        console.table(tableData);
+        if (error){
+            return console.error(error.message);
+        
+        }
+    
+        //console.table(data);
+
+        //console.log("<------------------------------------------------>");
+
+        var questions = [
+            {
+                name: "pickAnItem",
+                type: "rawList",
+                // choices: function() {
+                //     var choiceArray = [];
+                //     for (var i = 0; i < tableData.length; i++) {
+                //       choiceArray.push(tableData[i].item_name);
+                //     }
+                //     return choiceArray;
+                // },
+                message: "What is the product ID of the item you would like to purchase? (or q for quit)"
+    
+            },
+            {
+                name: "howMany",
+                type: "input",
+                message: "How many units would you like to purchase?"
+            }];
+
+            var promises = questions.map(function (question) {
+                return inquirer.prompt([question]).then(function (answer) {
+                    if (answer === 'q') {
+                        connection.end();
+                        process.exit(0);
+                    }        
+                    return Promise.resolve(answer);
+                });
+            })
+
+            Promise.all(promises)
+            .then(function(answer) {
+        
+            // var chosenItem;
+
+            for (var i = 0; i > tableData.length; i++) {
+                if (answer[0] === tableData[i].id) {
+
+                    // chosenItem = tableData[i].id;
+
+                    if(answer[1] > tableData[i].stock_quanity) {
+                        console.log("Insufficient Quanity!!!" );
+                        start();
+                    } else {
+                        purchaseItem(answer[0], tableData[i].stock_quanity - answer[1]);
+                        console.log("Your total is: " + answer[1] * tableData[i].price);    
+                    } // quanity check
+                } // id match
+            } // for loop
+            
+        }); // this is end of inquirer
+    }); // this is end of select
+} // function
+
+function purchaseItem(pickAnItem, difference) {
+
+    var sql = "UPDATE products SET ? WHERE ?";
+    var replacements = [
+        {
+            stock_quanity: difference
+        },
+        {
+            id: pickAnItem
+        },
+    ];
+    
+    connection.query(sql, replacements, function (err, result) {
+        if (err) throw err;
+        console.log(result.affectedRows + " record(s) updated");
+        start();
+    });
+}
+
+
+

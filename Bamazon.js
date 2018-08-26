@@ -21,44 +21,66 @@ connection.connect(function(err) {
 // function which prompts the user for what action they should take
 function start() {
 
+    var tableData; 
+
     connection.query("SELECT * from products", function(error, data) {
         if (error){
-            return console.error(error.message);
+            return console.error(error.message);        
         }
-    
-        //console.table(data);
+
+        function exit() {
+            connection.end();
+            process.exit(0);
+        }
+
+        tableData = data;
+        console.table(tableData);
+
 
         //console.log("<------------------------------------------------>");
 
         inquirer
-        .prompt(
+        .prompt([
         {
             name: "pickAnItem",
-            type: "input",
+            type: "rawList",
+            
             message: "What is the product ID of the item you would like to purchase? (or q for quit)"
+
         },
         {
             name: "howMany",
             type: "input",
             message: "How many units would you like to purchase?"
-        })
+        }])
         .then(function(answer) {
-            /*
-            if(answer.pickAnItem === 'q') {
-                connection.end();
-                process.exit(0);
+            
+            if(answer.pickAnItem === 'q' || answer.howMany === 'q') {
+                exit();
             }
-            for (var i = 0; i > data.length; i++) {
-                if (answer.pickAnItem === data[i].id) {
-                    if(answer.howMany > data[i].stock_quanity) {
-                        console.log("Insufficient Quanity!!!");
-                        start();
+
+            // var chosenItem;
+            console.log(answer.pickAnItem);
+            console.log(answer.howMany);
+            var howMany = parseInt(answer.howMany);
+            var pickAnItem = parseInt(answer.pickAnItem);
+            for (var i = 0; i < tableData.length; i++) {
+                
+                if (pickAnItem === tableData[i].id) {
+                    if (howMany > tableData[i].stock_quantity) {
+                        console.log("Insufficient Quanity!!!" );
+                        // start();
+                        break;
                     } else {
-                        purchaseItem(answer.pickAnItem, data[i].stock_quanity - answer.howMany);    
+                        purchaseItem(pickAnItem, tableData[i].stock_quantity - howMany);
+                        console.log("Your total is: $" + howMany * tableData[i].price);    
+                        break;
                     } // quanity check
-                } // id match
+                } else {
+                    console.log("INVALID SELECTION");
+                }// id match
             } // for loop
-            */
+            
         }); // this is end of inquirer
     }); // this is end of select
 } // function
@@ -68,7 +90,7 @@ function purchaseItem(pickAnItem, difference) {
     var sql = "UPDATE products SET ? WHERE ?";
     var replacements = [
         {
-            stock_quanity: difference
+            stock_quantity: difference
         },
         {
             id: pickAnItem
